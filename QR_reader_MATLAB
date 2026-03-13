@@ -1,0 +1,56 @@
+%% QR Code Scanner (live feed)
+clear; close all; clc
+imaqreset
+
+info = imaqhwinfo('winvideo');
+vid = videoinput('winvideo', 1, info.DeviceInfo.DefaultFormat); 
+
+triggerconfig(vid, 'manual');
+set(vid, 'FramesPerTrigger', 1);
+set(vid, 'TriggerRepeat', Inf);
+start(vid);
+pause(2);
+
+magnet = Magneti();
+
+disp('Scanning for QR code...');
+
+while true
+    trigger(vid);
+    frame = getdata(vid,1);
+
+    % Convert to grayscale
+    grayFrame = rgb2gray(frame);
+
+    % Show live feed
+    imshow(grayFrame);
+    drawnow;
+
+   % Read QR code
+tekst = readBarcode(grayFrame,'2D');
+
+% Only consider it detected if the text contains real content
+if any(strlength(strtrim(tekst)) > 0)
+    disp('QR code detected!');
+
+    % --- Pad lines to 28 to prevent parser crash ---
+    vrstice = split(tekst,newline);
+  
+    % --- Use parser ---
+    magnet.parserV02(vrstice);
+
+    % Display all properties
+    propNames = properties(magnet);
+    fprintf('--- QR Code Properties ---\n');
+    for k = 1:length(propNames)
+        name = propNames{k};
+        value = magnet.(name);
+        fprintf('%s: %s\n', name, value);
+    end
+    fprintf('--------------------------\n');
+
+    break; % stop scanning
+end
+
+    pause(0.1);
+end
