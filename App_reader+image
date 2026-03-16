@@ -1,0 +1,723 @@
+classdef BeriDM < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                      matlab.ui.Figure
+        GluetypeVrednostLabel         matlab.ui.control.Label
+        MaximumworkingtempVrednostLabel  matlab.ui.control.Label
+        PermeabilityVrednostLabel     matlab.ui.control.Label
+        BHVrednostLabel               matlab.ui.control.Label
+        HCIVrednostLabel              matlab.ui.control.Label
+        BRVrednostLabel               matlab.ui.control.Label
+        TolerancesVrednostLabel       matlab.ui.control.Label
+        DimensionsVrednostLabel       matlab.ui.control.Label
+        WeightVrednostLabel           matlab.ui.control.Label
+        ShapeVrednostLabel            matlab.ui.control.Label
+        ManufacturingprocessVrednostLabel  matlab.ui.control.Label
+        GBDtechnologyVrednostLabel    matlab.ui.control.Label
+        ChemicalcompositionVrednostLabel  matlab.ui.control.Label
+        CoatingtypeVrednostLabel      matlab.ui.control.Label
+        CharacteristicsVrednostLabel  matlab.ui.control.Label
+        TypeVrednostLabel             matlab.ui.control.Label
+        GluetypeLabel                 matlab.ui.control.Label
+        MaximumworkingtempLabel       matlab.ui.control.Label
+        PermeabilityLabel             matlab.ui.control.Label
+        BHminmaxLabel                 matlab.ui.control.Label
+        HCIminmaxLabel                matlab.ui.control.Label
+        BRminmaxLabel                 matlab.ui.control.Label
+        TolerancesLabel               matlab.ui.control.Label
+        DimensionsLabel               matlab.ui.control.Label
+        WeightLabel                   matlab.ui.control.Label
+        ShapeLabel                    matlab.ui.control.Label
+        ManufacturingprocessLabel     matlab.ui.control.Label
+        GBDtechnologyLabel            matlab.ui.control.Label
+        ChemicalcompositionLabel      matlab.ui.control.Label
+        CoatingtypeLabel              matlab.ui.control.Label
+        CharacteristicsLabel          matlab.ui.control.Label
+        TypeLabel                     matlab.ui.control.Label
+        MagnetLabel                   matlab.ui.control.Label
+        LifecycleVrednostLabel        matlab.ui.control.Label
+        MotormodelVrednostLabel       matlab.ui.control.Label
+        MotorproducerVrednostLabel    matlab.ui.control.Label
+        CarbonfootprintVrednostLabel  matlab.ui.control.Label
+        MagnetizationVrednostLabel    matlab.ui.control.Label
+        TotalnumberVrednostLabel      matlab.ui.control.Label
+        TotalweightVrednostLabel      matlab.ui.control.Label
+        OriginVrednostLabel           matlab.ui.control.Label
+        PacketIDVrednostLabel         matlab.ui.control.Label
+        CompanyVrednostLabel          matlab.ui.control.Label
+        DPPVrednostLabel              matlab.ui.control.Label
+        StandardVrednostLabel         matlab.ui.control.Label
+        MotorproducerLabel            matlab.ui.control.Label
+        MotormodelLabel               matlab.ui.control.Label
+        TotalnumberLabel              matlab.ui.control.Label
+        CarbonfootprintLabel          matlab.ui.control.Label
+        MagnetizationLabel            matlab.ui.control.Label
+        AdditionaldataLabel           matlab.ui.control.Label
+        TotalweightLabel              matlab.ui.control.Label
+        OriginLabel                   matlab.ui.control.Label
+        SlikaQRkode                   matlab.ui.control.Image
+        PacketIDLabel                 matlab.ui.control.Label
+        BatchLabel                    matlab.ui.control.Label
+        LifecycleLabel                matlab.ui.control.Label
+        CompanyLabel                  matlab.ui.control.Label
+        DPPLabel                      matlab.ui.control.Label
+        StandardLabel                 matlab.ui.control.Label
+        SCANButton                    matlab.ui.control.Button
+        Panel                         matlab.ui.container.Panel
+        Panel_2                       matlab.ui.container.Panel
+        Panel_4                       matlab.ui.container.Panel
+        axPredogled                   matlab.ui.control.UIAxes
+    end
+
+    
+    properties (Access = private)
+        Video %Video spremenljivka aplikacije
+        Predogled
+        Objekt
+        Skupina
+    end
+    
+    methods (Access = private)
+        
+        
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            % Skrij specifikacije motorja (nisem dal na UI panel zaenkrat)
+            %poišči objekte s "Tagom"
+            Skupina.Specifikacije = findobj(app.UIFigure, 'Tag', 'Specifikacije');
+            set(Skupina.Specifikacije,'Visible', 'off');
+            
+            %Poveži in nastavi kamero
+            imaqreset               % ponastavi naprave
+            info = imaqhwinfo('winvideo');
+            vid = videoinput('winvideo', 1, info.DeviceInfo.DefaultFormat); % npr. vid = videoinput('winvideo', 1, 'YUY2_640x480');
+            triggerconfig(vid, 'manual'); %  Ročni prožilec
+            set(vid, 'FramesPerTrigger', 1); % Koliko zajemov na prožitev
+            set(vid, 'TriggerRepeat', Inf); % omogoči več sprožitev
+            %start(vid); % zaženi video
+            
+            % predogled
+            predogled = image(app.axPredogled, zeros(480, 640,3,'uint8')); % pripravi prostor za predogled. Ustvari črno okno, ki ga moramo skriti
+            axis(app.axPredogled,'image') % Razmerje osi grafa kot jih ima kamera
+            predogled.Visible = false;
+            
+
+            %% Izhodne spremenljivke
+            app.Video = vid; %Video spremenljivka aplikacije
+            app.Predogled = predogled;
+            app.Skupina = Skupina;
+            
+        end
+
+        % Callback function
+        function BPButtonPushed(app, event)
+            keyboard;
+        end
+
+        % Button pushed function: SCANButton
+        function SCANButtonPushed(app, event)
+            %% vhodne spremenljivke
+            vid = app.Video;
+            pred = app.Predogled;
+            skupina = app.Skupina;
+            %ax = app.axPredogled;
+            
+            %Skrij skupino
+            set(skupina.Specifikacije, 'Visible', 'off')
+
+            %% jedro
+            pred.Visible = true;   
+            start(vid); % zaženi video
+            pause(0.2) % pavza mora biti, drugače je slika pomanjšana? Ko sem dal start(vid) za Visible mogoče pavza ni potrebna?
+            preview(vid,pred) % predogled
+             %ax.Visible = true; % prikaz slike
+
+             while (1)
+                %tic
+                trigger(vid); % sproži nov zajem
+                frame = getdata(vid,1); % pridobi prvo sliko v pomnilniku
+                %imshow(frame); %Prikaži sliko
+                %toc
+                tekst = readBarcode(frame,'2D'); % tekst, ki je zapisan na kodi
+                
+            
+                if strlength(tekst)
+
+                [~,~,points] = readBarcode(frame);
+
+                if ~isempty(points)
+
+                    modules = 44;
+                    warpSize = 440;   % large so modules are clear
+                    moduleSize = 10;
+
+                    %% DESTINATION (NO MARGIN)
+                    dst = [1 1;
+                        warpSize 1;
+                        warpSize warpSize;
+                        1 warpSize];
+
+                    %% ORDER CORNERS
+                    pts = points;
+                    center = mean(pts,1);
+                
+                    top = pts(pts(:,2) < center(2), :);
+                    bottom = pts(pts(:,2) >= center(2), :);
+                
+                    [~,i] = sort(top(:,1));
+                    topLeft = top(i(1),:);
+                    topRight = top(i(2),:);
+                
+                    [~,i] = sort(bottom(:,1));
+                    bottomLeft = bottom(i(1),:);
+                    bottomRight = bottom(i(2),:);
+                
+                    src = [topLeft;
+                           topRight;
+                           bottomRight;
+                           bottomLeft];
+
+                    %% WARP IMAGE
+                    tform = fitgeotrans(src,dst,'projective');
+                
+                    warped = imwarp(frame,tform,...
+                        'OutputView',imref2d([warpSize warpSize]),...
+                        'InterpolationMethod','nearest');
+                
+                    %% BINARIZE
+                    grayFrame = rgb2gray(warped);
+                    T = adaptthresh(grayFrame,0.60);
+                    bwFrame = imbinarize(grayFrame,T);
+                    %% SAMPLE MODULES
+                    cellSize = warpSize/modules;
+                
+                    dmGrid = false(modules,modules);
+                
+                    for r = 1:modules
+                        for c = 1:modules
+                
+                            y = round((r-0.5)*cellSize);
+                            x = round((c-0.5)*cellSize);
+                
+                            dmGrid(r,c) = bwFrame(y,x);
+                
+                        end
+                    end
+                
+                    %% REDRAW CLEAN DATAMATRIX
+                    drawnCode = imresize(dmGrid,moduleSize,'nearest');
+                
+                    displayImg = im2uint8(repmat(drawnCode,1,1,3));
+                    end
+
+                        %msg_tekst = sprintf("Podatki motorja:\n %s",tekst); % tekst za pojavno okno
+                        %f = msgbox(msg_tekst); % pojavno okno z informacijo o prebranem ID
+                    break;
+                end
+                %pause(0.1);
+            end
+            stop(vid); % Ustavi video
+            
+            pred.Visible = false; % to ne ustavi preview in še kaže ...
+            
+            % kliči prevajalnik. Nisem kar v tej funkciji, ker bo skoraj gotovo to tudi kasneje zunanja funkcija (po standardu)
+           prevod = Magneti();        % create object
+           prevod.parserV02(tekst); % parse QR text into properties
+
+            %% Izpis
+            app.SlikaQRkode.ImageSource = displayImg;
+            app.StandardVrednostLabel.Text = prevod.standard;
+            app.DPPVrednostLabel.Text = prevod.DPP;
+            app.LifecycleVrednostLabel.Text = prevod.lifecycle;
+            app.TypeVrednostLabel.Text = prevod.type;
+            app.CharacteristicsVrednostLabel.Text = prevod.character;
+            app.CoatingtypeVrednostLabel.Text = prevod.coating;
+            app.ChemicalcompositionVrednostLabel.Text = prevod.chemicalcomp;
+            app.GBDtechnologyVrednostLabel.Text = prevod.GBD;
+            app.ManufacturingprocessVrednostLabel.Text = prevod.manuprocess;
+            app.ShapeVrednostLabel.Text = prevod.shape;
+            app.WeightVrednostLabel.Text = prevod.weight;
+            app.DimensionsVrednostLabel.Text = prevod.dimension;
+            app.TolerancesVrednostLabel.Text = prevod.tolerance;
+            app.BRVrednostLabel.Text = prevod.BR;
+            app.HCIVrednostLabel.Text = prevod.HCI;
+            app.BHVrednostLabel.Text = prevod.BH;
+            app.PermeabilityVrednostLabel.Text = prevod.permeability;
+            app.MaximumworkingtempVrednostLabel.Text = prevod.maxtemp;
+            app.GluetypeVrednostLabel.Text = prevod.glue;
+            app.CompanyVrednostLabel.Text = prevod.company;
+            app.PacketIDVrednostLabel.Text = prevod.ID;
+            app.OriginVrednostLabel.Text = prevod.origin;
+            app.TotalweightVrednostLabel.Text = prevod.totalweight;
+            app.TotalnumberVrednostLabel.Text = prevod.count;
+            app.MagnetizationVrednostLabel.Text = prevod.magnetization;
+            app.CarbonfootprintVrednostLabel.Text = prevod.CO2;
+            app.MotorproducerVrednostLabel.Text = prevod.motorprod;
+            app.MotormodelVrednostLabel.Text = prevod.motormodel;
+            
+
+            %Prikaži skupino
+            set(skupina.Specifikacije, 'Visible', 'on')
+
+            %% izhodne spremenljivke
+            app.Objekt = prevod;
+
+
+
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 640 480];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create axPredogled
+            app.axPredogled = uiaxes(app.UIFigure);
+            app.axPredogled.Toolbar.Visible = 'off';
+            app.axPredogled.XTick = [];
+            app.axPredogled.YTick = [];
+            app.axPredogled.Visible = 'off';
+            app.axPredogled.Position = [198 141 273 220];
+
+            % Create Panel_4
+            app.Panel_4 = uipanel(app.UIFigure);
+            app.Panel_4.ForegroundColor = [0.8 0.8 0.8];
+            app.Panel_4.BorderType = 'none';
+            app.Panel_4.BackgroundColor = [0.8 0.8 0.8];
+            app.Panel_4.Tag = 'Specifikacije';
+            app.Panel_4.Position = [302 48 289 380];
+
+            % Create Panel_2
+            app.Panel_2 = uipanel(app.UIFigure);
+            app.Panel_2.ForegroundColor = [0.8 0.8 0.8];
+            app.Panel_2.BorderType = 'none';
+            app.Panel_2.BackgroundColor = [0.8 0.8 0.8];
+            app.Panel_2.Tag = 'Specifikacije';
+            app.Panel_2.Position = [53 123 200 169];
+
+            % Create Panel
+            app.Panel = uipanel(app.UIFigure);
+            app.Panel.ForegroundColor = [0.8 0.8 0.8];
+            app.Panel.BorderType = 'none';
+            app.Panel.BackgroundColor = [0.8 0.8 0.8];
+            app.Panel.Tag = 'Specifikacije';
+            app.Panel.Position = [55 310 200 43];
+
+            % Create SCANButton
+            app.SCANButton = uibutton(app.UIFigure, 'push');
+            app.SCANButton.ButtonPushedFcn = createCallbackFcn(app, @SCANButtonPushed, true);
+            app.SCANButton.FontWeight = 'bold';
+            app.SCANButton.Position = [38 407 89 23];
+            app.SCANButton.Text = 'SCAN';
+
+            % Create StandardLabel
+            app.StandardLabel = uilabel(app.UIFigure);
+            app.StandardLabel.Tag = 'Specifikacije';
+            app.StandardLabel.FontSize = 14;
+            app.StandardLabel.FontWeight = 'bold';
+            app.StandardLabel.Position = [94 331 70 22];
+            app.StandardLabel.Text = 'Standard:';
+
+            % Create DPPLabel
+            app.DPPLabel = uilabel(app.UIFigure);
+            app.DPPLabel.Tag = 'Specifikacije';
+            app.DPPLabel.HorizontalAlignment = 'right';
+            app.DPPLabel.Position = [126 310 33 22];
+            app.DPPLabel.Text = 'DPP:';
+
+            % Create CompanyLabel
+            app.CompanyLabel = uilabel(app.UIFigure);
+            app.CompanyLabel.Tag = 'Specifikacije';
+            app.CompanyLabel.HorizontalAlignment = 'right';
+            app.CompanyLabel.Position = [97 249 60 22];
+            app.CompanyLabel.Text = 'Company:';
+
+            % Create LifecycleLabel
+            app.LifecycleLabel = uilabel(app.UIFigure);
+            app.LifecycleLabel.Tag = 'Specifikacije';
+            app.LifecycleLabel.HorizontalAlignment = 'right';
+            app.LifecycleLabel.Position = [379 384 58 22];
+            app.LifecycleLabel.Text = 'Life cycle:';
+
+            % Create BatchLabel
+            app.BatchLabel = uilabel(app.UIFigure);
+            app.BatchLabel.Tag = 'Specifikacije';
+            app.BatchLabel.FontWeight = 'bold';
+            app.BatchLabel.Position = [119 270 38 22];
+            app.BatchLabel.Text = 'Batch';
+
+            % Create PacketIDLabel
+            app.PacketIDLabel = uilabel(app.UIFigure);
+            app.PacketIDLabel.Tag = 'Specifikacije';
+            app.PacketIDLabel.HorizontalAlignment = 'right';
+            app.PacketIDLabel.Position = [97 228 60 22];
+            app.PacketIDLabel.Text = 'Packet ID:';
+
+            % Create SlikaQRkode
+            app.SlikaQRkode = uiimage(app.UIFigure);
+            app.SlikaQRkode.Tag = 'Specifikacije';
+            app.SlikaQRkode.Position = [153 368 102 100];
+
+            % Create OriginLabel
+            app.OriginLabel = uilabel(app.UIFigure);
+            app.OriginLabel.Tag = 'Specifikacije';
+            app.OriginLabel.HorizontalAlignment = 'right';
+            app.OriginLabel.Position = [117 207 40 22];
+            app.OriginLabel.Text = 'Origin:';
+
+            % Create TotalweightLabel
+            app.TotalweightLabel = uilabel(app.UIFigure);
+            app.TotalweightLabel.Tag = 'Specifikacije';
+            app.TotalweightLabel.HorizontalAlignment = 'right';
+            app.TotalweightLabel.Position = [85 186 72 22];
+            app.TotalweightLabel.Text = 'Total weight:';
+
+            % Create AdditionaldataLabel
+            app.AdditionaldataLabel = uilabel(app.UIFigure);
+            app.AdditionaldataLabel.Tag = 'Specifikacije';
+            app.AdditionaldataLabel.FontWeight = 'bold';
+            app.AdditionaldataLabel.Position = [65 90 92 22];
+            app.AdditionaldataLabel.Text = 'Additional data';
+
+            % Create MagnetizationLabel
+            app.MagnetizationLabel = uilabel(app.UIFigure);
+            app.MagnetizationLabel.Tag = 'Specifikacije';
+            app.MagnetizationLabel.HorizontalAlignment = 'right';
+            app.MagnetizationLabel.Position = [74 144 83 22];
+            app.MagnetizationLabel.Text = 'Magnetization:';
+
+            % Create CarbonfootprintLabel
+            app.CarbonfootprintLabel = uilabel(app.UIFigure);
+            app.CarbonfootprintLabel.Tag = 'Specifikacije';
+            app.CarbonfootprintLabel.HorizontalAlignment = 'right';
+            app.CarbonfootprintLabel.Position = [63 123 94 22];
+            app.CarbonfootprintLabel.Text = 'Carbon footprint:';
+
+            % Create TotalnumberLabel
+            app.TotalnumberLabel = uilabel(app.UIFigure);
+            app.TotalnumberLabel.Tag = 'Specifikacije';
+            app.TotalnumberLabel.HorizontalAlignment = 'right';
+            app.TotalnumberLabel.Position = [79 165 78 22];
+            app.TotalnumberLabel.Text = 'Total number:';
+
+            % Create MotormodelLabel
+            app.MotormodelLabel = uilabel(app.UIFigure);
+            app.MotormodelLabel.Tag = 'Specifikacije';
+            app.MotormodelLabel.HorizontalAlignment = 'right';
+            app.MotormodelLabel.Position = [82 48 75 22];
+            app.MotormodelLabel.Text = 'Motor model:';
+
+            % Create MotorproducerLabel
+            app.MotorproducerLabel = uilabel(app.UIFigure);
+            app.MotorproducerLabel.Tag = 'Specifikacije';
+            app.MotorproducerLabel.HorizontalAlignment = 'right';
+            app.MotorproducerLabel.Position = [67 69 90 22];
+            app.MotorproducerLabel.Text = 'Motor producer:';
+
+            % Create StandardVrednostLabel
+            app.StandardVrednostLabel = uilabel(app.UIFigure);
+            app.StandardVrednostLabel.Tag = 'Specifikacije';
+            app.StandardVrednostLabel.Position = [166 331 89 22];
+
+            % Create DPPVrednostLabel
+            app.DPPVrednostLabel = uilabel(app.UIFigure);
+            app.DPPVrednostLabel.Tag = 'Specifikacije';
+            app.DPPVrednostLabel.Position = [166 310 89 22];
+
+            % Create CompanyVrednostLabel
+            app.CompanyVrednostLabel = uilabel(app.UIFigure);
+            app.CompanyVrednostLabel.Tag = 'Specifikacije';
+            app.CompanyVrednostLabel.Position = [164 249 89 22];
+
+            % Create PacketIDVrednostLabel
+            app.PacketIDVrednostLabel = uilabel(app.UIFigure);
+            app.PacketIDVrednostLabel.Tag = 'Specifikacije';
+            app.PacketIDVrednostLabel.Position = [164 228 89 22];
+
+            % Create OriginVrednostLabel
+            app.OriginVrednostLabel = uilabel(app.UIFigure);
+            app.OriginVrednostLabel.Tag = 'Specifikacije';
+            app.OriginVrednostLabel.Position = [164 207 89 22];
+
+            % Create TotalweightVrednostLabel
+            app.TotalweightVrednostLabel = uilabel(app.UIFigure);
+            app.TotalweightVrednostLabel.Tag = 'Specifikacije';
+            app.TotalweightVrednostLabel.Position = [164 186 89 22];
+
+            % Create TotalnumberVrednostLabel
+            app.TotalnumberVrednostLabel = uilabel(app.UIFigure);
+            app.TotalnumberVrednostLabel.Tag = 'Specifikacije';
+            app.TotalnumberVrednostLabel.Position = [164 165 89 22];
+
+            % Create MagnetizationVrednostLabel
+            app.MagnetizationVrednostLabel = uilabel(app.UIFigure);
+            app.MagnetizationVrednostLabel.Tag = 'Specifikacije';
+            app.MagnetizationVrednostLabel.Position = [164 144 89 22];
+
+            % Create CarbonfootprintVrednostLabel
+            app.CarbonfootprintVrednostLabel = uilabel(app.UIFigure);
+            app.CarbonfootprintVrednostLabel.Tag = 'Specifikacije';
+            app.CarbonfootprintVrednostLabel.Position = [164 123 89 22];
+
+            % Create MotorproducerVrednostLabel
+            app.MotorproducerVrednostLabel = uilabel(app.UIFigure);
+            app.MotorproducerVrednostLabel.Tag = 'Specifikacije';
+            app.MotorproducerVrednostLabel.Position = [164 69 89 22];
+
+            % Create MotormodelVrednostLabel
+            app.MotormodelVrednostLabel = uilabel(app.UIFigure);
+            app.MotormodelVrednostLabel.Tag = 'Specifikacije';
+            app.MotormodelVrednostLabel.Position = [164 48 89 22];
+
+            % Create LifecycleVrednostLabel
+            app.LifecycleVrednostLabel = uilabel(app.UIFigure);
+            app.LifecycleVrednostLabel.Tag = 'Specifikacije';
+            app.LifecycleVrednostLabel.WordWrap = 'on';
+            app.LifecycleVrednostLabel.Position = [445 384 213 22];
+
+            % Create MagnetLabel
+            app.MagnetLabel = uilabel(app.UIFigure);
+            app.MagnetLabel.Tag = 'Specifikacije';
+            app.MagnetLabel.FontWeight = 'bold';
+            app.MagnetLabel.Position = [390 406 47 22];
+            app.MagnetLabel.Text = 'Magnet';
+
+            % Create TypeLabel
+            app.TypeLabel = uilabel(app.UIFigure);
+            app.TypeLabel.Tag = 'Specifikacije';
+            app.TypeLabel.HorizontalAlignment = 'right';
+            app.TypeLabel.Position = [403 363 34 22];
+            app.TypeLabel.Text = 'Type:';
+
+            % Create CharacteristicsLabel
+            app.CharacteristicsLabel = uilabel(app.UIFigure);
+            app.CharacteristicsLabel.Tag = 'Specifikacije';
+            app.CharacteristicsLabel.HorizontalAlignment = 'right';
+            app.CharacteristicsLabel.Position = [349 342 88 22];
+            app.CharacteristicsLabel.Text = 'Characteristics:';
+
+            % Create CoatingtypeLabel
+            app.CoatingtypeLabel = uilabel(app.UIFigure);
+            app.CoatingtypeLabel.Tag = 'Specifikacije';
+            app.CoatingtypeLabel.HorizontalAlignment = 'right';
+            app.CoatingtypeLabel.Position = [361 321 76 22];
+            app.CoatingtypeLabel.Text = 'Coating type:';
+
+            % Create ChemicalcompositionLabel
+            app.ChemicalcompositionLabel = uilabel(app.UIFigure);
+            app.ChemicalcompositionLabel.Tag = 'Specifikacije';
+            app.ChemicalcompositionLabel.HorizontalAlignment = 'right';
+            app.ChemicalcompositionLabel.Position = [311 300 126 22];
+            app.ChemicalcompositionLabel.Text = 'Chemical composition:';
+
+            % Create GBDtechnologyLabel
+            app.GBDtechnologyLabel = uilabel(app.UIFigure);
+            app.GBDtechnologyLabel.Tag = 'Specifikacije';
+            app.GBDtechnologyLabel.HorizontalAlignment = 'right';
+            app.GBDtechnologyLabel.Position = [341 279 96 22];
+            app.GBDtechnologyLabel.Text = 'GBD technology:';
+
+            % Create ManufacturingprocessLabel
+            app.ManufacturingprocessLabel = uilabel(app.UIFigure);
+            app.ManufacturingprocessLabel.Tag = 'Specifikacije';
+            app.ManufacturingprocessLabel.HorizontalAlignment = 'right';
+            app.ManufacturingprocessLabel.Position = [307 258 130 22];
+            app.ManufacturingprocessLabel.Text = 'Manufacturing process:';
+
+            % Create ShapeLabel
+            app.ShapeLabel = uilabel(app.UIFigure);
+            app.ShapeLabel.Tag = 'Specifikacije';
+            app.ShapeLabel.HorizontalAlignment = 'right';
+            app.ShapeLabel.Position = [394 237 43 22];
+            app.ShapeLabel.Text = 'Shape:';
+
+            % Create WeightLabel
+            app.WeightLabel = uilabel(app.UIFigure);
+            app.WeightLabel.Tag = 'Specifikacije';
+            app.WeightLabel.HorizontalAlignment = 'right';
+            app.WeightLabel.Position = [392 216 45 22];
+            app.WeightLabel.Text = 'Weight:';
+
+            % Create DimensionsLabel
+            app.DimensionsLabel = uilabel(app.UIFigure);
+            app.DimensionsLabel.Tag = 'Specifikacije';
+            app.DimensionsLabel.HorizontalAlignment = 'right';
+            app.DimensionsLabel.Position = [366 195 71 22];
+            app.DimensionsLabel.Text = 'Dimensions:';
+
+            % Create TolerancesLabel
+            app.TolerancesLabel = uilabel(app.UIFigure);
+            app.TolerancesLabel.Tag = 'Specifikacije';
+            app.TolerancesLabel.HorizontalAlignment = 'right';
+            app.TolerancesLabel.Position = [371 174 66 22];
+            app.TolerancesLabel.Text = 'Tolerances:';
+
+            % Create BRminmaxLabel
+            app.BRminmaxLabel = uilabel(app.UIFigure);
+            app.BRminmaxLabel.Tag = 'Specifikacije';
+            app.BRminmaxLabel.HorizontalAlignment = 'right';
+            app.BRminmaxLabel.Position = [352 153 85 22];
+            app.BRminmaxLabel.Text = 'BR (min, max):';
+
+            % Create HCIminmaxLabel
+            app.HCIminmaxLabel = uilabel(app.UIFigure);
+            app.HCIminmaxLabel.Tag = 'Specifikacije';
+            app.HCIminmaxLabel.HorizontalAlignment = 'right';
+            app.HCIminmaxLabel.Position = [348 132 89 22];
+            app.HCIminmaxLabel.Text = 'HCI (min, max):';
+
+            % Create BHminmaxLabel
+            app.BHminmaxLabel = uilabel(app.UIFigure);
+            app.BHminmaxLabel.Tag = 'Specifikacije';
+            app.BHminmaxLabel.HorizontalAlignment = 'right';
+            app.BHminmaxLabel.Position = [352 111 85 22];
+            app.BHminmaxLabel.Text = 'BH (min, max):';
+
+            % Create PermeabilityLabel
+            app.PermeabilityLabel = uilabel(app.UIFigure);
+            app.PermeabilityLabel.Tag = 'Specifikacije';
+            app.PermeabilityLabel.HorizontalAlignment = 'right';
+            app.PermeabilityLabel.Position = [363 90 74 22];
+            app.PermeabilityLabel.Text = 'Permeability:';
+
+            % Create MaximumworkingtempLabel
+            app.MaximumworkingtempLabel = uilabel(app.UIFigure);
+            app.MaximumworkingtempLabel.Tag = 'Specifikacije';
+            app.MaximumworkingtempLabel.HorizontalAlignment = 'right';
+            app.MaximumworkingtempLabel.Position = [302 69 135 22];
+            app.MaximumworkingtempLabel.Text = 'Maximum working temp:';
+
+            % Create GluetypeLabel
+            app.GluetypeLabel = uilabel(app.UIFigure);
+            app.GluetypeLabel.Tag = 'Specifikacije';
+            app.GluetypeLabel.HorizontalAlignment = 'right';
+            app.GluetypeLabel.Position = [377 48 60 22];
+            app.GluetypeLabel.Text = 'Glue type:';
+
+            % Create TypeVrednostLabel
+            app.TypeVrednostLabel = uilabel(app.UIFigure);
+            app.TypeVrednostLabel.Tag = 'Specifikacije';
+            app.TypeVrednostLabel.Position = [445 363 213 22];
+
+            % Create CharacteristicsVrednostLabel
+            app.CharacteristicsVrednostLabel = uilabel(app.UIFigure);
+            app.CharacteristicsVrednostLabel.Tag = 'Specifikacije';
+            app.CharacteristicsVrednostLabel.Position = [445 342 213 22];
+
+            % Create CoatingtypeVrednostLabel
+            app.CoatingtypeVrednostLabel = uilabel(app.UIFigure);
+            app.CoatingtypeVrednostLabel.Tag = 'Specifikacije';
+            app.CoatingtypeVrednostLabel.Position = [445 321 213 22];
+
+            % Create ChemicalcompositionVrednostLabel
+            app.ChemicalcompositionVrednostLabel = uilabel(app.UIFigure);
+            app.ChemicalcompositionVrednostLabel.Tag = 'Specifikacije';
+            app.ChemicalcompositionVrednostLabel.Position = [445 300 213 22];
+
+            % Create GBDtechnologyVrednostLabel
+            app.GBDtechnologyVrednostLabel = uilabel(app.UIFigure);
+            app.GBDtechnologyVrednostLabel.Tag = 'Specifikacije';
+            app.GBDtechnologyVrednostLabel.Position = [445 279 213 22];
+
+            % Create ManufacturingprocessVrednostLabel
+            app.ManufacturingprocessVrednostLabel = uilabel(app.UIFigure);
+            app.ManufacturingprocessVrednostLabel.Tag = 'Specifikacije';
+            app.ManufacturingprocessVrednostLabel.Position = [445 258 213 22];
+
+            % Create ShapeVrednostLabel
+            app.ShapeVrednostLabel = uilabel(app.UIFigure);
+            app.ShapeVrednostLabel.Tag = 'Specifikacije';
+            app.ShapeVrednostLabel.Position = [445 237 213 22];
+
+            % Create WeightVrednostLabel
+            app.WeightVrednostLabel = uilabel(app.UIFigure);
+            app.WeightVrednostLabel.Tag = 'Specifikacije';
+            app.WeightVrednostLabel.Position = [445 216 213 22];
+
+            % Create DimensionsVrednostLabel
+            app.DimensionsVrednostLabel = uilabel(app.UIFigure);
+            app.DimensionsVrednostLabel.Tag = 'Specifikacije';
+            app.DimensionsVrednostLabel.Position = [445 195 213 22];
+
+            % Create TolerancesVrednostLabel
+            app.TolerancesVrednostLabel = uilabel(app.UIFigure);
+            app.TolerancesVrednostLabel.Tag = 'Specifikacije';
+            app.TolerancesVrednostLabel.Position = [445 174 213 22];
+
+            % Create BRVrednostLabel
+            app.BRVrednostLabel = uilabel(app.UIFigure);
+            app.BRVrednostLabel.Tag = 'Specifikacije';
+            app.BRVrednostLabel.Position = [445 153 213 22];
+
+            % Create HCIVrednostLabel
+            app.HCIVrednostLabel = uilabel(app.UIFigure);
+            app.HCIVrednostLabel.Tag = 'Specifikacije';
+            app.HCIVrednostLabel.Position = [445 132 213 22];
+
+            % Create BHVrednostLabel
+            app.BHVrednostLabel = uilabel(app.UIFigure);
+            app.BHVrednostLabel.Tag = 'Specifikacije';
+            app.BHVrednostLabel.Position = [445 111 213 22];
+
+            % Create PermeabilityVrednostLabel
+            app.PermeabilityVrednostLabel = uilabel(app.UIFigure);
+            app.PermeabilityVrednostLabel.Tag = 'Specifikacije';
+            app.PermeabilityVrednostLabel.Position = [445 90 213 22];
+
+            % Create MaximumworkingtempVrednostLabel
+            app.MaximumworkingtempVrednostLabel = uilabel(app.UIFigure);
+            app.MaximumworkingtempVrednostLabel.Tag = 'Specifikacije';
+            app.MaximumworkingtempVrednostLabel.Position = [445 69 213 22];
+
+            % Create GluetypeVrednostLabel
+            app.GluetypeVrednostLabel = uilabel(app.UIFigure);
+            app.GluetypeVrednostLabel.Tag = 'Specifikacije';
+            app.GluetypeVrednostLabel.Position = [445 48 213 22];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = BeriDM
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
