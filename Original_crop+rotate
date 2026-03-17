@@ -13,6 +13,6 @@ croppedFrame = imcrop(frame, [xMin yMin width height]); % Rotate the cropped fra
 bottomLeft = points(3,:) - [xMin-1, yMin-1]; % adjust points to cropped frame 
 bottomRight = points(4,:) - [xMin-1, yMin-1];
 
-angle = atan2d(bottomRight(2)-bottomLeft(2), bottomRight(1)-bottomLeft(1)); % Rotate image f
+angle = atan2d(bottomRight(2)-bottomLeft(2), bottomRight(1)-bottomLeft(1)); % Rotate image 
 
-inalFrame = imrotate(croppedFrame, -angle, 'bicubic', 'crop');
+finalFrame = imrotate(croppedFrame, -angle, 'bicubic', 'crop');
